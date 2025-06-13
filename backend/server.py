@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import uuid
 from typing import Union, Any, List # Make sure Any is imported
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
@@ -24,6 +24,9 @@ from langchain_core.agents import AgentAction, AgentFinish # Still from agents
 # NO LONGER ATTEMPTING TO IMPORT ToolOutput directly.
 # We will use 'Any' for its type hint in the callback.
 # --- END CORRECTED IMPORTS ---
+
+UPLOAD_DIR = "uploads" # Define a directory to store uploaded files
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Import database functions and models
 from database import (
@@ -426,6 +429,63 @@ async def perform_research(
             detail=f"An internal server error occurred during research: {str(e)}. "
                    "Please check server logs for more details."
         )
+
+
+@app.post("/documents/upload", status_code=status.HTTP_201_CREATED)
+async def upload_document(
+    file: UploadFile = File(...), # Expects file upload
+    session_id: Union[uuid.UUID, None] = None, # Optional: link to a session
+    current_user: User = Depends(get_current_user), # Protected endpoint
+    db: Session = Depends(get_db)
+):
+    """
+    Handles document uploads, saves the file, and stores metadata in the database.
+    """
+    if not file.filename:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No file uploaded.")
+
+    # 1. Sanitize filename and define save path
+    # Avoid path traversal attacks
+    filename = os.path.basename(file.filename)
+    # Append UUID to filename to ensure uniqueness and prevent overwrites
+    unique_filename = f"{uuid.uuid4()}_{filename}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+
+    # 2. Save the file to the local file system
+    try:
+        with open(file_path, "wb") as buffer:
+            # Use shutil.copyfileobj for efficiency with large files
+            import shutil
+            shutil.copyfileobj(file.file, buffer)
+        print(f"File saved to: {file_path}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to save file: {e}")
+
+    # 3. Create Document entry in the database
+    try:
+        document_entry = Document(
+            user_id=current_user.user_id,
+            session_id=session_id, # Can be None if not provided
+            file_name=filename,
+            file_path=file_path, # Store the local path
+            file_type=file.content_type # MIME type
+        )
+        db.add(document_entry)
+        db.commit()
+        db.refresh(document_entry)
+        print(f"Document entry created in DB: {document_entry.document_id}")
+    except Exception as e:
+        # If DB save fails, clean up the uploaded file
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to save document metadata: {e}")
+
+    return {
+        "message": "Document uploaded and metadata stored successfully",
+        "document_id": document_entry.document_id,
+        "file_name": document_entry.file_name,
+        "file_path": document_entry.file_path
+    }
 
 if __name__ == "__main__":
     import uvicorn

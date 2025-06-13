@@ -4,7 +4,7 @@ import streamlit as st
 # Import functions from your new page modules
 from pages.login_signup import display_login_form, display_signup_form
 from pages.research_assistant import display_research_assistant_page, logout
-
+from pages.document_upload import display_document_upload_page # <-- NEW IMPORT
 # --- Initialize Session State ---
 # This ensures that these state variables persist across reruns
 if 'logged_in' not in st.session_state:
@@ -20,6 +20,8 @@ st.sidebar.title("Navigation")
 # Control navigation based on login status
 if st.session_state.logged_in:
     page = st.sidebar.radio("Go to", ["Research Assistant", "Login/Signup"])
+elif st.session_state.logged_in:
+    page = st.sidebar.radio("Go to", ["Upload document", "Login/Signup"])
 else:
     page = st.sidebar.radio("Go to", ["Login/Signup", "Research Assistant"]) # Force login first
 
@@ -44,4 +46,8 @@ if page == "Login/Signup":
 elif page == "Research Assistant":
     # The research assistant page itself handles the "Please login" message
     display_research_assistant_page()
+
+elif page == "Upload Documents": # <-- NEW PAGE HANDLING
+    display_document_upload_page()
+
 
