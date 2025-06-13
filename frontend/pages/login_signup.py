@@ -12,17 +12,23 @@ from config import FASTAPI_BASE_URL # Import the base URL
 def login_user(username, password):
     """Attempts to log in the user and update session state."""
     try:
+        # Define headers for the request
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+
         response = requests.post(
             f"{FASTAPI_BASE_URL}/token",
-            data={"username": username, "password": password}
+            data={"username": username, "password": password},
+            headers=headers # <-- Explicitly add the headers here
         )
-        response.raise_for_status()
+        response.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
 
         token_data = response.json()
         st.session_state.access_token = token_data.get("access_token")
         st.session_state.logged_in = True
 
-        # Fetch user info immediately after successful login
+        # Immediately fetch user info to display
         headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
         user_response = requests.get(f"{FASTAPI_BASE_URL}/users/me/", headers=headers)
         user_response.raise_for_status()
@@ -30,15 +36,19 @@ def login_user(username, password):
 
         st.success(f"Welcome, {st.session_state.user_info['username']}! You are logged in.")
         st.rerun()
-        return True
 
     except requests.exceptions.HTTPError as e:
-        st.error(f"Login failed: {e.response.json().get('detail', 'Invalid credentials')}")
+        # Now, check if the response actually has JSON content before trying to parse
+        try:
+            error_detail = e.response.json().get('detail', 'Invalid credentials or server error')
+        except json.JSONDecodeError:
+            # If it's not JSON, show the raw text response for debugging
+            error_detail = f"Server returned non-JSON error: {e.response.text}"
+        st.error(f"Login failed: {error_detail}")
     except requests.exceptions.ConnectionError:
         st.error(f"Could not connect to the FastAPI server at {FASTAPI_BASE_URL}. Please ensure the server is running.")
     except Exception as e:
         st.error(f"An unexpected error occurred during login: {e}")
-    return False
 
 def signup_user(username, email, password):
     """Attempts to sign up a new user."""
