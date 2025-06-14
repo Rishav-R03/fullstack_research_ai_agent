@@ -171,6 +171,9 @@ The AI agent will process your request, use tools, and display a structured summ
 
 2. Research Query & Results Display
 ![image](https://github.com/user-attachments/assets/4126b801-580d-441e-82dc-87b7655f178c)
+![image](https://github.com/user-attachments/assets/2ad2ee25-0fa5-48d8-bd70-a3d55c2e97ea)
+
+![image](https://github.com/user-attachments/assets/cd72e1a1-fc91-48fa-8782-59a97f748669)
 
 4. ERD of Database Records
 ![image](https://github.com/user-attachments/assets/c8d855e0-c7fd-4a97-a91b-2354889e3ad1)
