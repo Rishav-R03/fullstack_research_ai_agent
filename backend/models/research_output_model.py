@@ -1,10 +1,8 @@
-from sqlalchemy import Column, String, Text, Boolean, ForeignKey, func, text, DateTime # <-- Add DateTime here
-# from datetime import datetime # No longer needed for Column type, but can keep if used elsewhere
-from sqlalchemy.dialects.postgresql import UUID, JSONB # <-- Import JSONB for PostgreSQL JSON type
+from sqlalchemy import Column, String, Text, Boolean, ForeignKey, func, text, DateTime
+from sqlalchemy.dialects.postgresql import UUID, JSONB 
 from sqlalchemy.orm import relationship
 
-from database import Base # Import Base from your database.py
-
+from database import Base 
 class ResearchOutput(Base):
     __tablename__ = "research_outputs"
 
@@ -12,13 +10,11 @@ class ResearchOutput(Base):
     query_id = Column(UUID(as_uuid=True), ForeignKey("research_queries.query_id"), unique=True, nullable=False, index=True)
     topic = Column(String(255))
     summary = Column(Text)
-    sources = Column(JSONB) # <-- Use JSONB for PostgreSQL
-    tools_used_reported = Column(JSONB) # <-- Use JSONB for PostgreSQL
+    sources = Column(JSONB) 
+    tools_used_reported = Column(JSONB)
     parsing_successful = Column(Boolean, default=True)
     raw_llm_output = Column(Text)
-    created_at = Column(DateTime(timezone=True), default=func.now()) # <-- Use SQLAlchemy's DateTime type
-
-    # Define one-to-one relationship back to ResearchQuery
+    created_at = Column(DateTime(timezone=True), default=func.now()) 
     research_query = relationship("ResearchQuery", back_populates="research_output")
 
     def __repr__(self):

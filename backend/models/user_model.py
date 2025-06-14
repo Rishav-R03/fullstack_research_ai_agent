@@ -1,8 +1,8 @@
 from sqlalchemy import Column, String, DateTime, func, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship # Import relationship
+from sqlalchemy.orm import relationship 
 
-from database import Base # Import Base from your database.py
+from database import Base 
 
 class User(Base):
     __tablename__ = "users"
@@ -13,9 +13,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), default=func.now())
     last_login_at = Column(DateTime(timezone=True), nullable=True)
-    # settings = Column(JSONB, default={})
 
-    # Define relationships to other models that link back to User
     research_sessions = relationship("ResearchSession", back_populates="user", cascade="all, delete-orphan")
     research_queries = relationship("ResearchQuery", back_populates="user", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")

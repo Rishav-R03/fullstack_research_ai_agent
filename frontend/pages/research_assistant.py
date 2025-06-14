@@ -1,9 +1,7 @@
-# frontend/pages/research_assistant.py
-
 import streamlit as st
 import requests
 import json
-from config import FASTAPI_BASE_URL # Import the base URL
+from config import FASTAPI_BASE_URL 
 
 def logout():
     """Logs out the user by clearing session state."""
@@ -11,19 +9,18 @@ def logout():
     st.session_state.access_token = None
     st.session_state.user_info = None
     st.info("You have been logged out.")
-    st.rerun() # Rerun to display login page
+    st.rerun()
 
 def display_research_assistant_page():
     """Displays the main research assistant UI."""
     st.title("📚 Gemini Research Assistant")
 
-    # Display user info and logout button if logged in
     if st.session_state.logged_in and st.session_state.user_info:
         st.write(f"Logged in as: **{st.session_state.user_info['username']}** (ID: `{st.session_state.user_info['user_id']}`)")
         st.button("Logout", on_click=logout)
     else:
         st.warning("Please login to use the Research Assistant.")
-        return # Stop execution if not logged in
+        return 
 
     st.markdown("Enter a query below and let the AI assistant research it for you!")
 
@@ -66,7 +63,7 @@ def display_research_assistant_page():
                 except requests.exceptions.HTTPError as e:
                     if e.response.status_code == 401:
                         st.error("Authentication required. Your session might have expired. Please log in again.")
-                        logout() # Force logout if token expired/invalid
+                        logout() 
                     else:
                         st.error(f"Research failed: {e.response.json().get('detail', 'Server error')}")
                 except requests.exceptions.ConnectionError:

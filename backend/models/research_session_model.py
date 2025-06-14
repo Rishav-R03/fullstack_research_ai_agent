@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from database import Base # Import Base from your database.py
+from database import Base
 
 class ResearchSession(Base):
     __tablename__ = "research_sessions"
@@ -13,23 +13,17 @@ class ResearchSession(Base):
     created_at = Column(DateTime(timezone=True), default=func.now())
     last_updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
     is_archived = Column(Boolean, default=False)
-
-    # Define relationship to User
     user = relationship("User", back_populates="research_sessions")
-
-    # Define relationship to ResearchQuery (one-to-many)
     research_queries = relationship(
         "ResearchQuery",
         back_populates="session",
-        cascade="all, delete-orphan", # Deletes queries if session is deleted
-        order_by="ResearchQuery.query_timestamp.desc()" # Order queries by most recent
+        cascade="all, delete-orphan",
+        order_by="ResearchQuery.query_timestamp.desc()"
     )
-
-    # Define relationship to Document (one-to-many, optional)
     documents = relationship(
         "Document",
         back_populates="session",
-        cascade="all, delete-orphan" # Deletes documents if session is deleted
+        cascade="all, delete-orphan" 
     )
 
     def __repr__(self):

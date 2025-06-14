@@ -1,18 +1,11 @@
-# frontend/pages/login_signup.py
-
 import streamlit as st
 import requests
 import json
-from config import FASTAPI_BASE_URL # Import the base URL
-
-# --- Session State Management (for this module's scope, but Home.py will manage central state) ---
-# Note: Streamlit's session_state is global across the app once set, so these checks
-# are good for robustness, but usually set up in the main app file (home.py).
+from config import FASTAPI_BASE_URL
 
 def login_user(username, password):
     """Attempts to log in the user and update session state."""
     try:
-        # Define headers for the request
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
@@ -20,15 +13,13 @@ def login_user(username, password):
         response = requests.post(
             f"{FASTAPI_BASE_URL}/token",
             data={"username": username, "password": password},
-            headers=headers # <-- Explicitly add the headers here
+            headers=headers 
         )
-        response.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status() 
 
         token_data = response.json()
         st.session_state.access_token = token_data.get("access_token")
         st.session_state.logged_in = True
-
-        # Immediately fetch user info to display
         headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
         user_response = requests.get(f"{FASTAPI_BASE_URL}/users/me/", headers=headers)
         user_response.raise_for_status()
@@ -38,11 +29,9 @@ def login_user(username, password):
         st.rerun()
 
     except requests.exceptions.HTTPError as e:
-        # Now, check if the response actually has JSON content before trying to parse
         try:
             error_detail = e.response.json().get('detail', 'Invalid credentials or server error')
         except json.JSONDecodeError:
-            # If it's not JSON, show the raw text response for debugging
             error_detail = f"Server returned non-JSON error: {e.response.text}"
         st.error(f"Login failed: {error_detail}")
     except requests.exceptions.ConnectionError:

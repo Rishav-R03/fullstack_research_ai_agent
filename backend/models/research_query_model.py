@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Text, DateTime, Integer, DECIMAL, Foreign
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from database import Base # Import Base from your database.py
+from database import Base
 
 class ResearchQuery(Base):
     __tablename__ = "research_queries"
@@ -12,31 +12,24 @@ class ResearchQuery(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False, index=True) # Redundant but useful for direct access
     query_text = Column(Text, nullable=False)
     query_timestamp = Column(DateTime(timezone=True), default=func.now())
-    llm_model_used = Column(String(100)) # e.g., 'gemini-1.5-flash', 'gpt-4o'
+    llm_model_used = Column(String(100)) 
     input_tokens = Column(Integer)
     output_tokens = Column(Integer)
-    total_cost = Column(DECIMAL(10, 6)) # Store estimated cost, e.g., in USD
+    total_cost = Column(DECIMAL(10, 6))
 
-    # Define relationship to ResearchSession
     session = relationship("ResearchSession", back_populates="research_queries")
-
-    # Define relationship to User
     user = relationship("User", back_populates="research_queries")
-
-    # Define one-to-one relationship to ResearchOutput
     research_output = relationship(
         "ResearchOutput",
         back_populates="research_query",
-        uselist=False, # Indicates a one-to-one relationship
-        cascade="all, delete-orphan" # Deletes output if query is deleted
+        uselist=False,
+        cascade="all, delete-orphan"
     )
-
-    # Define relationship to ToolExecution (one-to-many)
     tool_executions = relationship(
         "ToolExecution",
         back_populates="research_query",
-        cascade="all, delete-orphan", # Deletes executions if query is deleted
-        order_by="ToolExecution.execution_timestamp" # Order executions by time
+        cascade="all, delete-orphan",
+        order_by="ToolExecution.execution_timestamp"
     )
 
     def __repr__(self):
