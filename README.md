@@ -73,7 +73,7 @@ Clone the repository:
 
 Bash
 
-git clone [https://github.com/your-username/your-repo-name.git](https://github.com/Rishav-R03/fullstack_research_ai_agent)
+git clone [Link](https://github.com/Rishav-R03/fullstack_research_ai_agent)
 cd your-repo-name
 
 Create and Activate a Virtual Environment (Highly Recommended):
